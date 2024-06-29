@@ -5,6 +5,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
 # Set up Chrome options to disable image loading
@@ -17,6 +19,9 @@ chrome_options.add_argument("--disable-notifications")
 # Set up the WebDriver
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
+# Set script timeout to handle long-running scripts
+driver.set_script_timeout(30)
+
 # Open the URL
 url = "https://bsky.app/search?q=doi.org"
 driver.get(url)
@@ -25,7 +30,7 @@ driver.get(url)
 time.sleep(5)
 
 # Wait for the user to click the "Latest" button
-input("Please click on the 'Latest' tab and press Enter to continue :-)")
+input("Please click on the 'Latest' tab and press Enter to continue...")
 
 # Scroll down until the end of the page or until 'E' is pressed
 last_height = driver.execute_script("return document.body.scrollHeight")
@@ -35,7 +40,7 @@ print("Scrolling... Press 'E' to end scrolling and save files.")
 while True:
     # Scroll down to the bottom
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    time.sleep(5)  # Wait for new content to load
+    time.sleep(3)  # Wait for new content to load
 
     # Check if 'E' key is pressed
     if keyboard.is_pressed('e'):
@@ -43,7 +48,11 @@ while True:
         break
 
     # Calculate new scroll height and compare with the last scroll height
-    new_height = driver.execute_script("return document.body.scrollHeight")
+    try:
+        new_height = driver.execute_script("return document.body.scrollHeight")
+    except:
+        print("Script execution timed out, ending scroll.")
+        break
     if new_height == last_height:
         print("Reached the end of the page.")
         break
